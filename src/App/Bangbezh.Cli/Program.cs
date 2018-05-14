@@ -2,6 +2,7 @@
 using Bangbezh.Core.Providers;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +13,9 @@ namespace Bangbezh.Cli
     {
         static void Main(string[] args)
         {
-            IPrayerTimesProvider prayerTimesProvider = new FakePrayerTimesProvider();
+            var stream = File.OpenRead("sample.txt");
+            IPrayerTimesProvider prayerTimesProvider = new LocalFilePrayerTimesProvider(stream);
+            prayerTimesProvider.Initialize();
 
             var day = prayerTimesProvider.GetPrayerTimes(DateTime.Now.Month, DateTime.Now.Day);
             var scheduler = new PrayerScheduler(day);

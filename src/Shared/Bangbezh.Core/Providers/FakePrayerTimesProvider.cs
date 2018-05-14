@@ -22,9 +22,19 @@ namespace Bangbezh.Core.Providers
             return _day;
         }
 
-        public Task<PrayerDay> GetPrayerTimesAsync(int month, int day)
+        public void Initialize()
         {
-            return Task.FromResult<PrayerDay>(_day);
+
+        }
+
+        private static readonly Task _completedTask = Task.FromResult(false);
+        public Task InitializeAsync()
+        {
+#if NET45
+            return _completedTask;
+#else
+            return Task.CompletedTask;
+#endif
         }
     }
 }
