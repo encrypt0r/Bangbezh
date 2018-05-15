@@ -11,18 +11,20 @@ namespace Bangbezh.Cli
     {
         private readonly Timer _timer;
         private readonly PrayerDay _prayerDay;
+        private readonly IClock _clock;
 
         public event EventHandler<PrayerTimeEventArgs> PrayerTime;
 
-        public PrayerScheduler(PrayerDay prayerDay)
+        public PrayerScheduler(PrayerDay prayerDay, IClock clock)
         {
+            _clock = clock;
             _timer = new Timer(new TimerCallback(Tick), null, 1000 % DateTime.Now.Millisecond, 1000);
             _prayerDay = prayerDay;
         }
 
         private void Tick(object state)
         {
-            var currentDate = DateTime.Now;
+            var currentDate = _clock.GetNow();
             var tolerance = TimeSpan.FromMilliseconds(500);
 
             for (var i = PrayerType.Fajr; i <= PrayerType.Isha; i++)

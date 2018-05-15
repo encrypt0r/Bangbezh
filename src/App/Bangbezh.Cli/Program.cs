@@ -1,5 +1,6 @@
 ﻿using Bangbezh.Core.Models;
 using Bangbezh.Core.Providers;
+using Bangbezh.Core.Schedule;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +19,9 @@ namespace Bangbezh.Cli
             prayerTimesProvider.Initialize();
 
             var day = prayerTimesProvider.GetPrayerTimes(DateTime.Now.Month, DateTime.Now.Day);
-            var scheduler = new PrayerScheduler(day);
+            var clock = new FakeClock();
+            clock.Set(day.GetPrayerDate(PrayerType.Fajr));
+            var scheduler = new PrayerScheduler(day, clock);
 
             scheduler.PrayerTime += (s, e) =>
             {
