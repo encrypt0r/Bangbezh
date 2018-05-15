@@ -7,7 +7,7 @@ using Bangbezh.Core.Models;
 
 namespace Bangbezh.Core.Providers
 {
-    public class LocalFilePrayerTimesProvider : IPrayerTimesProvider
+    public class StreamPrayerTimesProvider : IPrayerTimesProvider
     {
         #region Fields
         private readonly Stream _data;
@@ -16,7 +16,7 @@ namespace Bangbezh.Core.Providers
         #endregion
 
         #region Constructor
-        public LocalFilePrayerTimesProvider(Stream data)
+        public StreamPrayerTimesProvider(Stream data)
         {
             _data = data;
         }
@@ -95,7 +95,7 @@ namespace Bangbezh.Core.Providers
             if (parts.Length != Constants.PrayersTimesCount + 2)
                 throw new FormatException($"Invalid number of tokens ({parts.Length}) on line {lineNumber}.");
 
-            var times = new List<TimeSpan>(Constants.PrayersTimesCount);
+            var prayers = new List<Prayer>(Constants.PrayersTimesCount);
 
             var successful = int.TryParse(parts[0], out var month);
             successful = int.TryParse(parts[1], out var day) ? successful : false;
@@ -103,6 +103,7 @@ namespace Bangbezh.Core.Providers
             if (!successful)
                 throw new FormatException($"Invalid token on line {lineNumber}.");
 
+            var type = PrayerType.Fajr;
             for (int i = 2; i < parts.Length; i++)
             {
                 var values = parts[i].Split(':');
@@ -116,12 +117,12 @@ namespace Bangbezh.Core.Providers
                 if (!successful)
                     throw new FormatException($"Invalid prayer time on line {lineNumber}.");
 
-                times.Add(new TimeSpan(hour, minute, 0));
+                prayers.Add(new Prayer(type++, new TimeSpan(hour, minute, 0)));
             }
 
             try
             {
-                _days.Add(Hash(month, day), new PrayerDay(new DateTime(year, month, day), times));
+                _days.Add(Hash(month, day), new PrayerDay(new DateTime(year, month, day), prayers));
             }
             catch (ArgumentOutOfRangeException)
             {

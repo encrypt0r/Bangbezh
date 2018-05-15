@@ -5,33 +5,55 @@ namespace Bangbezh.Core.Models
 {
     public class PrayerDay
     {
-        public PrayerDay(DateTime date, IReadOnlyList<TimeSpan> times)
+        public PrayerDay(DateTime date, IReadOnlyList<Prayer> prayers)
         {
-            if (times.Count != Constants.PrayersTimesCount)
+            if (prayers.Count != Constants.PrayersTimesCount)
                 throw new ArgumentException("You have to provide all of the prayer times as well as sunrise time.");
 
             Date = date;
-            PrayerTimes = times;
+            Prayers = prayers;
         }
 
         public DateTime Date { get; }
-        public IReadOnlyList<TimeSpan> PrayerTimes { get; }
+        public IReadOnlyList<Prayer> Prayers { get; }
 
-        public TimeSpan Fajr => GetPrayer(PrayerType.Fajr);
-        public TimeSpan Sunrise => GetPrayer(PrayerType.Sunrise);
-        public TimeSpan Dhuhur => GetPrayer(PrayerType.Dhuhur);
-        public TimeSpan Asr => GetPrayer(PrayerType.Asr);
-        public TimeSpan Maghrib => GetPrayer(PrayerType.Maghrib);
-        public TimeSpan Isha => GetPrayer(PrayerType.Isha);
+        public Prayer Fajr => GetPrayer(PrayerType.Fajr);
+        public Prayer Sunrise => GetPrayer(PrayerType.Sunrise);
+        public Prayer Dhuhur => GetPrayer(PrayerType.Dhuhur);
+        public Prayer Asr => GetPrayer(PrayerType.Asr);
+        public Prayer Maghrib => GetPrayer(PrayerType.Maghrib);
+        public Prayer Isha => GetPrayer(PrayerType.Isha);
 
-        public TimeSpan GetPrayer(PrayerType prayer)
+        public Prayer GetPrayer(PrayerType prayer)
         {
-            return PrayerTimes[(int)prayer];
+            return Prayers[(int)prayer];
         }
-        public DateTime GetPrayerDate(PrayerType prayer)
+
+        public DateTime GetPrayerDate(PrayerType type)
         {
-            var time = GetPrayer(prayer);
-            return Date.AddSeconds(time.TotalSeconds);
+            var prayer = GetPrayer(type);
+            return prayer.GetDate(Date.Year, Date.Month, Date.Day);
+        }
+
+        public bool HasTimePassed(PrayerType type)
+        {
+            var prayer = GetPrayer(type);
+            return (DateTime.Now - GetPrayerDate(type)).CompareTo(TimeSpan.Zero) > 0;
+        }
+
+        public TimeSpan GetRemainingTimeTo(PrayerType type)
+        {
+            var prayer = GetPrayer(type);
+
+            if (HasTimePassed(type))
+            {
+                var tomorrow = Date.AddDays(1);
+                return (DateTime.Now - prayer.GetDate(tomorrow.Year, tomorrow.Month, tomorrow.Day)).Duration();
+            }
+            else
+            {
+                return (DateTime.Now - GetPrayerDate(type)).Duration();
+            }
         }
     }
 }
